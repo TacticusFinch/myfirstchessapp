@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/myfirstchessapp/static/css/main.e6c13ad2.css",
-    "main.js": "/myfirstchessapp/static/js/main.0aa31152.js",
+    "main.js": "/myfirstchessapp/static/js/main.a98f8bea.js",
     "static/js/488.c5cb1339.chunk.js": "/myfirstchessapp/static/js/488.c5cb1339.chunk.js",
     "index.html": "/myfirstchessapp/index.html",
     "main.e6c13ad2.css.map": "/myfirstchessapp/static/css/main.e6c13ad2.css.map",
-    "main.0aa31152.js.map": "/myfirstchessapp/static/js/main.0aa31152.js.map",
+    "main.a98f8bea.js.map": "/myfirstchessapp/static/js/main.a98f8bea.js.map",
     "488.c5cb1339.chunk.js.map": "/myfirstchessapp/static/js/488.c5cb1339.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.0aa31152.js"
+    "static/js/main.a98f8bea.js"
   ]
 }
