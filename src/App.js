@@ -37,9 +37,9 @@ const getEvaluation = (message, turn) => {
 const customPieces = {
   wP: ({ squareWidth }) => (
     <img
-      src="/img/pieces/2200.jpg"
+      src="/img/pieces/2200.png"
       style={{ width: squareWidth, height: squareWidth }}
-      alt="Whitee Pawn"
+      alt="Whiteee Pawn"
     />
   ),
   wN: ({ squareWidth }) => (
@@ -199,7 +199,7 @@ const App = () => {
         position={game.fen()} // Current position from the game state
         onPieceDrop={onDrop} // Function to handle piece drops
         boardWidth={500} // Width of the chessboard in pixels
-        customPieces={customPieces} // Custom pieces mapping
+        //customPieces={customPieces} // Custom pieces mapping
         customLightSquareStyle={lightSquareStyle} // Apply custom light square style
         customDarkSquareStyle={darkSquareStyle}   // Apply custom dark square style
       />
