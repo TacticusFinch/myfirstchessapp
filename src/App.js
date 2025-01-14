@@ -1,43 +1,43 @@
-import React, { useState, useEffect } from "react"; // Import necessary React functions
-import { Chessboard } from "react-chessboard"; // Import the chessboard component from react-chessboard
-import { Chess } from "chess.js"; // Import the chess.js library for game logic
+import React, { useState, useEffect } from "react"; // Import React, useState, and useEffect hooks
+import { Chessboard } from "react-chessboard"; // Import the Chessboard component
+import { Chess } from "chess.js"; // Import the Chess library for game logic
 
-// Function to extract the best move and evaluation from Stockfish's output message
+// Function to parse Stockfish's output and extract the best move and evaluation
 const getEvaluation = (message, turn) => {
-  let result = { bestMove: "", evaluation: "" }; // Initialize result with empty values
+  let result = { bestMove: "", evaluation: "" }; // Initialize result with default values
 
-  // If the message contains "bestmove", extract the best move
+  // If the message starts with "bestmove", extract the best move from the message
   if (message.startsWith("bestmove")) {
     result.bestMove = message.split(" ")[1]; // The best move is the second word in the message
   }
 
-  // Check for "info score" in the message to extract the evaluation score
+  // Check for "info score" in the message to extract evaluation score
   if (message.includes("info") && message.includes("score")) {
     const scoreParts = message.split(" "); // Split message into words
     const scoreIndex = scoreParts.indexOf("score") + 2; // "cp" or "mate" is two words after "score"
 
-    // If the score type is "cp" (centipawn), convert it to a pawn value
+    // If the score type is "cp" (centipawn), interpret it as a material advantage in pawns
     if (scoreParts[scoreIndex - 1] === "cp") {
       let score = parseInt(scoreParts[scoreIndex], 10); // Parse the score value
       if (turn !== "b") {
-        score = -score; // Invert the score if it's White's turn to match convention
+        score = -score; // Invert the score if it's White's turn
       }
-      result.evaluation = score / 100; // Convert centipawns to pawns (100 centipawns = 1 pawn)
+      result.evaluation = score / 100; // Convert centipawns to pawns
     } else if (scoreParts[scoreIndex - 1] === "mate") {
-      // If the score type is "mate", indicate how many moves until mate
+      // If the score type is "mate", indicate moves until checkmate
       const mateIn = parseInt(scoreParts[scoreIndex], 10);
-      result.evaluation = `Mate in ${Math.abs(mateIn)}`; // Absolute value for positive mate distance
+      result.evaluation = `Mate in ${Math.abs(mateIn)}`;
     }
   }
 
-  return result; // Return the result containing bestMove and evaluation
+  return result; // Return the best move and evaluation
 };
 
-// Define custom pieces with each piece pointing to its image
+// Define custom pieces mapping for each piece to its corresponding image
 const customPieces = {
   wP: ({ squareWidth }) => (
     <img
-      src="/img/pieces/wP.svg"
+      src="/img/pieces/2200.jpg"
       style={{ width: squareWidth, height: squareWidth }}
       alt="Whitee Pawn"
     />
@@ -121,26 +121,39 @@ const customPieces = {
   ),
 };
 
-const App = () => {
-  // State for tracking game state, Stockfish worker, best move, and evaluation score
-  const [game, setGame] = useState(new Chess());
-  const [stockfish, setStockfish] = useState(null);
-  const [bestMove, setBestMove] = useState("");
-  const [evaluation, setEvaluation] = useState("");
+// Define custom square styles for the "White Stripe Theme"
+const lightSquareStyle = {
+  backgroundColor: "#FFFFFF", // Light square base color
+  backgroundImage:
+    "repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 2px, transparent 2px, transparent 4px)", // Light square stripe pattern
+};
 
+const darkSquareStyle = {
+  backgroundColor: "#CCCCCC", // Dark square base color
+  backgroundImage:
+    "repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.1) 0, rgba(0, 0, 0, 0.1) 2px, transparent 2px, transparent 4px)", // Dark square stripe pattern
+};
+
+const App = () => {
+  // State variables for chess game logic, Stockfish worker, best move, and evaluation
+  const [game, setGame] = useState(new Chess()); // Chess game instance
+  const [stockfish, setStockfish] = useState(null); // Stockfish Web Worker instance
+  const [bestMove, setBestMove] = useState(""); // Best move suggested by Stockfish
+  const [evaluation, setEvaluation] = useState(""); // Evaluation of the position by Stockfish
+
+  // useEffect hook to initialize the Stockfish Web Worker
   useEffect(() => {
-    // Initialize Stockfish as a Web Worker when the component mounts
     const stockfishWorker = new Worker(`${process.env.PUBLIC_URL}/js/stockfish-16.1-lite-single.js`);
 
     setStockfish(stockfishWorker);
 
-    // Clean up the worker when the component unmounts
+    // Terminate the worker when the component unmounts
     return () => {
       stockfishWorker.terminate();
     };
   }, []);
 
-  // Handle piece drop (move) on the chessboard
+  // Function to handle piece drop events on the chessboard
   const onDrop = (sourceSquare, targetSquare) => {
     const gameCopy = new Chess(game.fen()); // Clone the current game state
 
@@ -148,7 +161,7 @@ const App = () => {
       const move = gameCopy.move({
         from: sourceSquare,
         to: targetSquare,
-        promotion: "q", // Auto-promote to a queen
+        promotion: "q", // Always promote to a queen for simplicity
       });
 
       // If the move is invalid, return false to prevent it
@@ -158,7 +171,7 @@ const App = () => {
 
       setGame(gameCopy); // Update the game state with the new move
 
-      // Send the updated position to Stockfish to get the best move and evaluation
+      // Send the updated position to Stockfish for analysis
       if (stockfish) {
         stockfish.postMessage(`position fen ${gameCopy.fen()}`); // Set the position in Stockfish
         stockfish.postMessage("go depth 15"); // Ask Stockfish to analyze to depth 15
@@ -171,9 +184,9 @@ const App = () => {
         };
       }
 
-      return true; // Return true if the move was successful
+      return true; // Return true if the move was valid
     } catch (error) {
-      console.error(error.message); // Log error if an invalid move
+      console.error("Invalid move:", error.message); // Log error if an invalid move
       return false;
     }
   };
@@ -181,12 +194,14 @@ const App = () => {
   return (
     <div>
       <h1>Chess Game with Stockfish</h1>
-      {/* Chessboard component with custom pieces and onDrop handler */}
+      {/* Chessboard component with custom pieces and square styles */}
       <Chessboard
         position={game.fen()} // Current position from the game state
         onPieceDrop={onDrop} // Function to handle piece drops
         boardWidth={500} // Width of the chessboard in pixels
-        customPieces={customPieces} // Pass custom pieces variable
+        customPieces={customPieces} // Custom pieces mapping
+        customLightSquareStyle={lightSquareStyle} // Apply custom light square style
+        customDarkSquareStyle={darkSquareStyle}   // Apply custom dark square style
       />
       {/* Display the best move and evaluation score */}
       <div>
